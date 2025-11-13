@@ -11,30 +11,29 @@
 
 	let chart;
 
-	// Initialize default dates (last 30 days)
-	(function initDates() {
+	// Initialize default dates (first day of current month to today)
+	function initDates() {
 		const today = new Date();
 		const end = formatDate(today);
-		const startDate = new Date(today);
-		startDate.setDate(today.getDate() - 30);
+		const startDate = new Date(today.getFullYear(), today.getMonth(), 1);
 		const start = formatDate(startDate);
 		startInput.value = start;
 		endInput.value = end;
-	})();
+	}
 
-	// Lock symbol to AI3 in UI and logic
-	(function lockSymbol() {
-		const fixed = 'AI3';
-		symbolInput.value = fixed;
-		symbolInput.readOnly = true;
-		symbolInput.setAttribute('aria-readonly', 'true');
+	// Initialize and load data on page load
+	(async function init() {
+		initDates();
+		await fetchAndRender();
 	})();
 
 	form.addEventListener('submit', async (e) => {
 		e.preventDefault();
-		// Force symbol to AI3 regardless of UI
-		const symbol = 'AI3';
-		symbolInput.value = symbol;
+		await fetchAndRender();
+	});
+
+	async function fetchAndRender() {
+		const symbol = symbolInput.value.trim();
 		const start = startInput.value;
 		const end = endInput.value;
 		const convert = convertSelect.value;
@@ -70,7 +69,7 @@
 		} finally {
 			setLoading(false);
 		}
-	});
+	}
 
 	function renderChart(payload, convert) {
 		const labels = (payload.points || []).map(p => toLocalDate(p.date));
@@ -188,5 +187,3 @@
 		}
 	}
 })();
-
-
