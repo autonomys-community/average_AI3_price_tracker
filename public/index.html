@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Token Price Tracker</title>
+	<link rel="stylesheet" href="/styles.css">
+	<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+	<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+</head>
+<body>
+	<div class="container">
+		<h1>Token Price Tracker (CoinGecko)</h1>
+		<form id="query-form" class="controls">
+			<div class="field">
+				<label for="symbol">Symbol</label>
+				<input id="symbol" name="symbol" type="text" value="AI3" placeholder="AI3" required readonly aria-readonly="true" />
+			</div>
+			<div class="field">
+				<label for="start">Start date</label>
+				<input id="start" name="start" type="date" required />
+			</div>
+			<div class="field">
+				<label for="end">End date</label>
+				<input id="end" name="end" type="date" required />
+			</div>
+			<div class="field">
+				<label for="convert">Currency</label>
+				<select id="convert" name="convert">
+					<option value="USD" selected>USD</option>
+					<option value="EUR">EUR</option>
+					<option value="GBP">GBP</option>
+					<option value="JPY">JPY</option>
+				</select>
+			</div>
+			<button id="submit-btn" type="submit">Fetch</button>
+		</form>
+
+		<div class="status" style="background:#eef2ff;color:#3730a3;">
+			Data source: CoinGecko API.
+		</div>
+
+		<div id="status" class="status" hidden></div>
+
+		<div class="chart-card">
+			<canvas id="priceChart" height="120"></canvas>
+		</div>
+
+		<div class="summary">
+			<div class="summary-item">
+				<span class="label">Selected period average:</span>
+				<span id="overallAverage" class="value">—</span>
+			</div>
+			<div class="summary-item">
+				<span class="label">Data points:</span>
+				<span id="pointCount" class="value">0</span>
+			</div>
+		</div>
+	</div>
+
+	<script src="/app.js" defer></script>
+	<noscript>Please enable JavaScript to use this application.</noscript>
+</body>
+</html>
+
+
