@@ -1,63 +1,69 @@
-## Token Price Tracker (CoinMarketCap)
+## AI3 Token Price Tracker (CoinGecko)
 
-A single-page application that:
-- Fetches OHLCV historical data from CoinMarketCap for a given token symbol and date range
-- Plots the daily average price on a line chart
-- Displays the overall average price for the selected period
+Single-page app that:
+- Fetches historical prices from CoinGecko free API
+- Aggregates one UTC end-of-day (EOD) close per day for a selected date range
+- Plots those daily closes and displays the arithmetic mean for the period
+
+Data source: CoinGecko (`/coins/{id}/market_chart/range`).
 
 ### Prerequisites
 - Node.js 18+
-- A CoinMarketCap API key (Pro API)
 
 ### Setup
-1. In the project root, create a `.env` file with:
-
-```
-CMC_API_KEY=your-coinmarketcap-api-key-here
-PORT=3000
-```
-
-2. Install dependencies:
+1) Install dependencies:
 
 ```bash
 npm install
 ```
 
-3. Start the server:
+2) Start the server:
 
 ```bash
 npm start
 ```
 
-4. Open the app at:
+3) Open the app:
 
 ```
 http://localhost:3000
 ```
 
 ### Usage
-- Enter a token `symbol` (e.g., BTC), choose `start` and `end` dates, and select the `currency` (default USD).
-- Click Fetch to see the daily average price chart and the overall average for the period.
+- Symbol is fixed to `AI3` in the UI.
+- Choose `start` and `end` dates (YYYY-MM-DD) and a `currency` (default USD), then click Fetch.
+- The chart shows one point per day (UTC EOD close). The “Selected period average” is the arithmetic mean of those daily closes.
 
-### Notes
-- The backend exposes `/api/ohlcv?symbol=BTC&start=YYYY-MM-DD&end=YYYY-MM-DD&convert=USD` which proxies to CoinMarketCap and normalizes the response:
+### API
+Backend endpoint:
+
+```
+GET /api/daily-close?symbol=AI3&start=YYYY-MM-DD&end=YYYY-MM-DD&convert=USD
+```
+
+Sample response:
 
 ```json
 {
-  "symbol": "BTC",
-  "name": "Bitcoin",
+  "symbol": "AI3",
+  "name": "Autonomys AI3",
   "convert": "USD",
   "points": [
-    { "date": "2024-01-01T23:59:59.999Z", "open": 0, "high": 0, "low": 0, "close": 0, "average": 0 }
+    { "date": "2025-10-01T23:59:59.999Z", "price": 1.23 },
+    { "date": "2025-10-02T23:59:59.999Z", "price": 1.27 }
   ]
 }
 ```
 
-- Daily average is computed as `(open + high + low + close) / 4`.
-- If you encounter CMC errors, ensure your API key is valid and your selected date range is supported.
+### How the average is calculated
+1. Fetch intraday price samples from CoinGecko for the requested range.
+2. Group by UTC day and select the last sample per day as the EOD close.
+3. Compute arithmetic mean: sum(EOD closes) / number of days.
 
 ### Development
-- Static SPA files are in `public/`.
-- Server code is in `server.js`.
+- Frontend: `public/` (`index.html`, `app.js`, `styles.css`)
+- Backend: `server.js`
 
+### Repository
+- Code is available at: `https://github.com/autonomys-community/average_AI3_price_tracker`
 
