@@ -15,18 +15,18 @@ You can open the app as static files:
 - Option A: Open `public/index.html` directly in your browser.
 - Option B: Serve the `public/` folder with any static server (e.g., `python -m http.server`).
 
-### Deploy to Netlify
-This repo includes a Netlify Function for `/api/daily-close` and a redirect to it.
+### Deploy to GitHub Pages
+Option A (recommended): Serve from `docs/` folder
+1. The `docs/` folder contains a copy of the static site (`index.html`, `app.js`, `styles.css`).
+2. Copy your `favicon.ico` into `docs/` if you want a favicon.
+3. In GitHub → Settings → Pages:
+   - Source: Deploy from a branch
+   - Branch: `main`
+   - Folder: `/docs`
+4. Save. Your site will be published at `https://<username>.github.io/<repo>/`.
 
-1) Commit and push your repo to GitHub.
-2) In Netlify, create a new site from Git:
-   - Select your repo.
-   - Build command: (leave empty)
-   - Publish directory: `public`
-3) Netlify will detect `netlify.toml`:
-   - Functions directory: `netlify/functions`
-   - Redirects: `public/_redirects` maps `/api/daily-close` → `/.netlify/functions/daily-close`
-4) Deploy. Your SPA will be available at your Netlify URL, and the frontend will call `/api/daily-close` which is served by the function.
+Option B: Serve from root with a GitHub Action
+- You can also configure Pages to deploy from the repository root using a workflow, but `docs/` is simpler for static sites.
 
 ### Usage
 - Choose `start` and `end` dates (YYYY-MM-DD) and a `currency` (default USD), then click Fetch.

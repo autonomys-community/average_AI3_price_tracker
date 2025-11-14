@@ -11,7 +11,6 @@
 
 	let chart;
 
-	// Initialize default dates (first day of current month to today)
 	function initDates() {
 		const today = new Date();
 		const end = formatDate(today);
@@ -21,7 +20,6 @@
 		endInput.value = end;
 	}
 
-	// Initialize and load data on page load
 	(async function init() {
 		initDates();
 		await fetchAndRender();
@@ -39,10 +37,9 @@
 		const convert = convertSelect.value;
 
 		if (!symbol || !start || !end) {
-			showStatus('Please provide symbol, start, and end dates.', 'error');
+			showStatus('Please provide start, and end dates.', 'error');
 			return;
 		}
-
 		if (new Date(start) > new Date(end)) {
 			showStatus('Start date must be before or equal to End date.', 'error');
 			return;
@@ -51,13 +48,7 @@
 		setLoading(true);
 		showStatus('');
 		try {
-			const url = `/api/daily-close?symbol=${encodeURIComponent(symbol)}&start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}&convert=${encodeURIComponent(convert)}`;
-			const resp = await fetch(url);
-			if (!resp.ok) {
-				const err = await safeJson(resp);
-				throw new Error(err?.error || `Request failed with ${resp.status}`);
-			}
-			const data = await resp.json();
+			const data = await fetchDailyCloseFromCoinGecko(symbol, start, end, convert);
 			renderChart(data, convert);
 			renderSummary(data, convert);
 			if ((data.points || []).length === 0) {
@@ -186,4 +177,57 @@
 			return null;
 		}
 	}
+
+	async function fetchDailyCloseFromCoinGecko(symbol, startYmd, endYmd, convert) {
+		const vs = String(convert || 'USD').toLowerCase();
+		const searchUrl = `https://api.coingecko.com/api/v3/search?query=${encodeURIComponent(symbol)}`;
+		const searchResp = await fetch(searchUrl);
+		if (!searchResp.ok) throw new Error(`CoinGecko search failed: ${searchResp.status}`);
+		const search = await searchResp.json();
+		const coins = Array.isArray(search?.coins) ? search.coins : [];
+		const exact = coins.find(c => String(c.symbol || '').toUpperCase() === symbol.toUpperCase());
+		const coin = exact || coins[0];
+		if (!coin) throw new Error(`Symbol ${symbol} not found on CoinGecko`);
+
+		const from = Math.floor(Date.parse(`${startYmd}T00:00:00.000Z`) / 1000);
+		const to = Math.floor(Date.parse(`${endYmd}T23:59:59.999Z`) / 1000);
+		const rangeUrl = `https://api.coingecko.com/api/v3/coins/${encodeURIComponent(coin.id)}/market_chart/range?vs_currency=${encodeURIComponent(vs)}&from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`;
+		const rangeResp = await fetch(rangeUrl);
+		if (!rangeResp.ok) {
+			const err = await safeJson(rangeResp);
+			throw new Error(err?.error || `CoinGecko range failed: ${rangeResp.status}`);
+		}
+		const range = await rangeResp.json();
+		const prices = Array.isArray(range?.prices) ? range.prices : [];
+
+		const byDay = new Map();
+		for (const entry of prices) {
+			const ms = Number(entry?.[0]);
+			const price = Number(entry?.[1]);
+			if (!Number.isFinite(ms) || !Number.isFinite(price)) continue;
+			const ymd = toUtcYmd(ms);
+			const prev = byDay.get(ymd);
+			if (!prev || ms > prev._ts) {
+				byDay.set(ymd, { date: endOfDayIso(ymd), price, _ts: ms });
+			}
+		}
+		const points = Array.from(byDay.values())
+			.sort((a, b) => a._ts - b._ts)
+			.map(x => ({ date: x.date, price: x.price }));
+
+		return { symbol, name: coin.name, convert: convert.toUpperCase(), points };
+	}
+
+	function toUtcYmd(isoOrMs) {
+		const d = typeof isoOrMs === 'number' ? new Date(isoOrMs) : new Date(isoOrMs);
+		const y = d.getUTCFullYear();
+		const m = `${d.getUTCMonth() + 1}`.padStart(2, '0');
+		const day = `${d.getUTCDate()}`.padStart(2, '0');
+		return `${y}-${m}-${day}`;
+	}
+
+	function endOfDayIso(ymd) {
+		return `${ymd}T23:59:59.999Z`;
+	}
 })();
+
