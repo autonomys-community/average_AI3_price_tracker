@@ -7,26 +7,10 @@ Single-page app that:
 
 Data source: CoinGecko (`/coins/{id}/market_chart/range`).
 
-### Prerequisites
-- Modern web browser
-
 ### Setup
 You can open the app as static files:
 - Option A: Open `public/index.html` directly in your browser.
 - Option B: Serve the `public/` folder with any static server (e.g., `python -m http.server`).
-
-### Deploy to GitHub Pages
-Option A (recommended): Serve from `docs/` folder
-1. The `docs/` folder contains a copy of the static site (`index.html`, `app.js`, `styles.css`).
-2. Copy your `favicon.ico` into `docs/` if you want a favicon.
-3. In GitHub → Settings → Pages:
-   - Source: Deploy from a branch
-   - Branch: `main`
-   - Folder: `/docs`
-4. Save. Your site will be published at `https://<username>.github.io/<repo>/`.
-
-Option B: Serve from root with a GitHub Action
-- You can also configure Pages to deploy from the repository root using a workflow, but `docs/` is simpler for static sites.
 
 ### Usage
 - Choose `start` and `end` dates (YYYY-MM-DD) and a `currency` (default USD), then click Fetch.
@@ -36,9 +20,6 @@ Option B: Serve from root with a GitHub Action
 1. Fetch intraday price samples from CoinGecko for the requested range.
 2. Group by UTC day and select the last sample per day as the EOD close.
 3. Compute arithmetic mean: sum(EOD closes) / number of days.
-
-### Development
-- Frontend only: `public/` (`index.html`, `app.js`, `styles.css`)
 
 ### Repository
 - Code is available at: `https://github.com/autonomys-community/average_AI3_price_tracker`
